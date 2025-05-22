@@ -1,5 +1,5 @@
 {
-	"name": "ls_Azure_SA1",
+	"name": "ls_Azure_SA",
 	"type": "Microsoft.DataFactory/factories/linkedservices",
 	"properties": {
 		"parameters": {
