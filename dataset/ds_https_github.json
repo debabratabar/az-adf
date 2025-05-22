@@ -1,0 +1,33 @@
+{
+	"name": "ds_https_github",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_https_git_server",
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"BASE_URL": {
+					"value": "@dataset().PAR_BASE_URL",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"PAR_BASE_URL": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "HttpServerLocation"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

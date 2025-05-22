@@ -1,0 +1,9 @@
+{
+	"name": "adf-debabrata-practice",
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "54a62848-e252-4a84-aae2-1625adeafbd4",
+		"tenantId": "ce63db2f-4e20-4353-aaab-90307068f977"
+	}
+}
