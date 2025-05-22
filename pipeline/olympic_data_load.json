@@ -1,0 +1,244 @@
+{
+	"name": "olympic_data_load",
+	"properties": {
+		"activities": [
+			{
+				"name": "Notebook1",
+				"type": "DatabricksNotebook",
+				"state": "Active",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "ForEach1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": "/Users/barshrabani@gmail.com/toyo-olympic-2021_raw",
+					"baseParameters": {
+						"PAR_ADLS_ACC_KEY": {
+							"value": "@variables('ADLS_ACC_KEY')",
+							"type": "Expression"
+						},
+						"PAR_ADLS_URL": {
+							"value": "@variables('ADLS_URL')",
+							"type": "Expression"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_az_databricks",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"ADB_WS_URL": {
+							"value": "@variables('ADB_WS_URL')",
+							"type": "Expression"
+						},
+						"ADB_access_token": {
+							"value": "@variables('ADB_secret_name')",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "ForEach1",
+				"type": "ForEach",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@variables('FILE_NAMES')",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "FILE_URL",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "FILE_URL",
+								"value": {
+									"value": "@concat('https://raw.githubusercontent.com/darshilparmar/tokyo-olympic-azure-data-engineering-project/main/data/',item())",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "Copy data1",
+							"type": "Copy",
+							"dependsOn": [
+								{
+									"activity": "ADLS_FILE_NAME",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"storeSettings": {
+										"type": "HttpReadSettings",
+										"requestMethod": "GET"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".csv"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "ds_https_github",
+									"type": "DatasetReference",
+									"parameters": {
+										"PAR_BASE_URL": {
+											"value": "@variables('FILE_URL')",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ds_Azure_SA",
+									"type": "DatasetReference",
+									"parameters": {
+										"PAR_ADLS_SECRET": {
+											"value": "@variables('ADLS_ACC_KEY')",
+											"type": "Expression"
+										},
+										"PAR_ADLS_URL": {
+											"value": "@variables('ADLS_URL')",
+											"type": "Expression"
+										},
+										"PAR_ADLS_CONTAINER": {
+											"value": "@variables('ADLS_CONTAINER')",
+											"type": "Expression"
+										},
+										"PAR_ADLS_FILE_PATH": {
+											"value": "@variables('ADLS_FILE_NAME')",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "ADLS_FILE_NAME",
+							"type": "SetVariable",
+							"dependsOn": [
+								{
+									"activity": "FILE_URL",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "ADLS_FILE_NAME",
+								"value": {
+									"value": "@concat('raw-data/',item())",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"variables": {
+			"ADLS_URL": {
+				"type": "String",
+				"defaultValue": "https://sadebabratapractice01.dfs.core.windows.net/"
+			},
+			"ADB_WS_URL": {
+				"type": "String",
+				"defaultValue": "https://adb-881997221524154.14.azuredatabricks.net"
+			},
+			"ADB_secret_name": {
+				"type": "String",
+				"defaultValue": "akv-az-ad-acc-token"
+			},
+			"ADLS_ACC_KEY": {
+				"type": "String",
+				"defaultValue": "akv-az-sa-sas-secret"
+			},
+			"FILE_NAMES": {
+				"type": "Array",
+				"defaultValue": [
+					"Athletes.csv",
+					"Coaches.csv",
+					"EntriesGender.csv",
+					"Medals.csv",
+					"Teams.csv"
+				]
+			},
+			"FILE_URL": {
+				"type": "String"
+			},
+			"ADLS_CONTAINER": {
+				"type": "String",
+				"defaultValue": "2021-olympic-data"
+			},
+			"ADLS_FILE_NAME": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "2021-Olympic-research"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-05-12T14:27:23Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}
